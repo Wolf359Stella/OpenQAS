@@ -16,15 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import logging
 import random
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree as et
+
 from ... import _LOG
-from ...question import QQuestion
 from ...answer import Item
-from ..text import Var, FText
+from ...question import QQuestion
+from ..text import FText, Math
 from .imscc import CC
+
 if TYPE_CHECKING:
     from ...category import Category
 
@@ -308,7 +311,7 @@ def get_canvas_vars(self):
     """
     while self.text[self.stt[0]] == "]" and not self.stt[1]:
         self._nxt()
-    return Var(self.text[self.stt[2]: self.stt[0]])
+    return Math.from_expr(self.text[self.stt[2]: self.stt[0]])
 
 
 _QTYPE_CC = {

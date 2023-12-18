@@ -18,14 +18,16 @@
 
 """
 import os
+from io import StringIO
 
 from sympy import Symbol, sqrt
 
 from qas_editor import utils
 from qas_editor.enums import FileAddr, MathType, Platform
+from qas_editor.parsers.latex import LatexWriter
 from qas_editor.parsers.moodle import MoodleXHTMLParser
 from qas_editor.parsers.text import (FText, LinkRef, PlainParser, XHTMLParser,
-                                     XItem)
+                                     XHTMLWriter, XItem)
 
 TEST_PATH = os.path.dirname(__file__)
 SRC_PATH = os.path.abspath(os.path.join(TEST_PATH, '..'))
@@ -63,7 +65,10 @@ def test_xhtml_tag_flat():
     assert len(ftext.text[0]) == 1
     assert ftext[0][0] == ("Moodle and fp latex package syntax "
             "is not always equivalent. Here some test for pathological cases.")
-    assert ftext.get(MathType.ASCII, FileAddr.EMBEDDED, Platform.NONE) == text
+    res = StringIO()
+    XHTMLWriter(res, ftext).write()
+    res.seek(0)
+    assert res.read() == text
 
 
 def test_xhtml_tag_hierarchical():
@@ -83,7 +88,10 @@ def test_xhtml_tag_hierarchical():
     assert len(ftext[0][0]) == 1
     assert len(ftext[2]) == 4
     assert len(ftext[2][3]) == 2
-    assert ftext.get(MathType.ASCII, FileAddr.EMBEDDED, Platform.NONE) == text
+    res = StringIO()
+    XHTMLWriter(res, ftext).write()
+    res.seek(0)
+    assert res.read() == text
 
 
 def test_xhtml_img_ref():
@@ -123,7 +131,10 @@ def test_moodle_latex_embedded():
     parser = MoodleXHTMLParser("", True, False, None)
     parser.parse(text)
     ftext = FText(parser)
-    assert ftext.get(MathType.LATEX, FileAddr.EMBEDDED, Platform.MOODLE) == "var $$x$$"
+    res = StringIO()
+    LatexWriter(res, None, None)._write_ftext(ftext)
+    res.seek(0)
+    assert res.read() == "var $$x$$"
 
 
 def test_moodle_ascii_embeeded():

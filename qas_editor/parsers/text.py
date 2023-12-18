@@ -24,100 +24,147 @@ import logging
 import os
 import shutil
 import subprocess
-import tempfile
 from html import parser, unescape
 from importlib import util
 from io import BytesIO, TextIOWrapper
-from typing import Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 from urllib import parse
 from xml.sax import saxutils
 
 from ..enums import FileAddr, MathType, Platform, TextFormat
 from ..utils import File, ParseError
 
+if TYPE_CHECKING:
+    from io import StringIO
+
 EXTRAS_FORMULAE = util.find_spec("sympy") is not None
 if EXTRAS_FORMULAE:
     from matplotlib import figure, font_manager, mathtext
     from matplotlib.backends import backend_agg
     from pyparsing import ParseFatalException  # Part of matplotlib package
-    from sympy import Expr, printing
+    from sympy import Expr, parsing, printing
+    from sympy.parsing import latex
 
 _LOG = logging.getLogger(__name__)
 
 
-_latex_cache: Dict[str, str] = {}
-def render_latex(latex: str, path: str, scale=1.0):
-    """TODO optimize. It has just too many calls. But at least it works...
-    """
-    key = saxutils.escape(latex, entities={'[': '(', ']': ')'})
-    if key in _latex_cache:
-        return _latex_cache[key]
-    res = None
-    name = f"eq{len(_latex_cache): 10}.svg"
-    if latex[:2] == "$$":
-        attr = {'style':'vertical-align:middle;'}
-    else:
-        attr = {'style':'display:block;margin-left:auto;margin-right:auto;'}
-    if shutil.which("dvisvgm"):
-        def run_me(cmd):
-            flag = 0x08000000 if os.name == 'nt' else 0
-            return subprocess.run(cmd, stdout=subprocess.PIPE, check=True, 
-                                    creationflags=flag, cmd=path)
+class Math:
 
-        with open(f"{path}/texput.tex", 'w', encoding='utf-8') as fh:
-            fh.write("\\documentclass[varwidth,12pt]{standalone}"
-                        "\n\\usepackage{amsmath}\n\\usepackage{amsmath}\n\n"
-                        "\\begin{document}\n"+ latex + "\n\n\\end{document}")
-        run_me(['latex', '-halt-on-error', '-interaction=nonstopmode',
-                'text.tex'])
-        if path:
-            res = run_me(["dvisvgm", "--no-fonts", "--stdout", "text.dvi"])
-            res = str(base64.b64encode(res.stdout), "utf-8")
+    def __init__(self, expr: str|Expr):
+        self.expr = expr
+
+    @classmethod
+    def from_expr(cls, string: str):
+        return cls(parsing.parse_expr(string) if EXTRAS_FORMULAE else string)
+
+    @classmethod
+    def from_latex(cls, string: str):
+        return cls(latex.parse_latex(string) if EXTRAS_FORMULAE else string)
+
+    _latex_cache: Dict[str, str] = {}
+    def render_latex(self, latex: str, path: str, scale=1.0):
+        """TODO optimize. It has just too many calls. But at least it works...
+        """
+        key = saxutils.escape(latex, entities={'[': '(', ']': ')'})
+        if key in self._latex_cache:
+            return self._latex_cache[key]
+        res = None
+        name = f"eq{len(self._latex_cache): 10}.svg"
+        if latex[:2] == "$$":
+            attr = {'style':'vertical-align:middle;'}
         else:
-            run_me(["dvisvgm", "--no-fonts", "-o", name, "text.dvi"])
-            shutil.move(f"{path}/{name}", ".")
-            res = f"{path}/{name}"
-    elif EXTRAS_FORMULAE:
-        try:
-            prop = font_manager.FontProperties(size=12)
-            dpi = 120 * scale
-            parser = mathtext.MathTextParser("path")
-            width, height, depth, _, _ = parser.parse(latex, dpi=72, prop=prop)
-            fig = figure.Figure(figsize=(width / 72, height / 72))
-            fig.text(0, depth / height, latex, fontproperties=prop, color='Black')
-            backend_agg.FigureCanvasAgg(fig)  # set the canvas used
+            attr = {'style':'display:block;margin-left:auto;margin-right:auto;'}
+        if shutil.which("dvisvgm"):
+            def run_me(cmd):
+                flag = 0x08000000 if os.name == 'nt' else 0
+                return subprocess.run(cmd, stdout=subprocess.PIPE, check=True, 
+                                        creationflags=flag, cmd=path)
+
+            with open(f"{path}/texput.tex", 'w', encoding='utf-8') as fh:
+                fh.write("\\documentclass[varwidth,12pt]{standalone}"
+                            "\n\\usepackage{amsmath}\n\\usepackage{amsmath}\n\n"
+                            "\\begin{document}\n"+ latex + "\n\n\\end{document}")
+            run_me(['latex', '-halt-on-error', '-interaction=nonstopmode',
+                    'text.tex'])
             if path:
-                fig.savefig(f"{path}/{name}", dpi=dpi, format="svg", transparent=True)
-                res = f"{path}/{name}"
+                res = run_me(["dvisvgm", "--no-fonts", "--stdout", "text.dvi"])
+                res = str(base64.b64encode(res.stdout), "utf-8")
             else:
-                buffer = BytesIO()
-                fig.savefig(name, dpi=dpi, format="svg", transparent=True)
-                buffer.close()
-                res = str(base64.b64encode(buffer.getvalue()), "utf-8")
-        except (ValueError, RuntimeError):
-            return None
-        except ParseFatalException:
-            return None
-    _latex_cache[key] = res
-    return res
+                run_me(["dvisvgm", "--no-fonts", "-o", name, "text.dvi"])
+                shutil.move(f"{path}/{name}", ".")
+                res = f"{path}/{name}"
+        elif EXTRAS_FORMULAE:
+            try:
+                prop = font_manager.FontProperties(size=12)
+                dpi = 120 * scale
+                parser = mathtext.MathTextParser("path")
+                width, height, depth, _, _ = parser.parse(latex, dpi=72, prop=prop)
+                fig = figure.Figure(figsize=(width / 72, height / 72))
+                fig.text(0, depth / height, latex, fontproperties=prop, color='Black')
+                backend_agg.FigureCanvasAgg(fig)  # set the canvas used
+                if path:
+                    fig.savefig(f"{path}/{name}", dpi=dpi, format="svg", transparent=True)
+                    res = f"{path}/{name}"
+                else:
+                    buffer = BytesIO()
+                    fig.savefig(name, dpi=dpi, format="svg", transparent=True)
+                    buffer.close()
+                    res = str(base64.b64encode(buffer.getvalue()), "utf-8")
+            except (ValueError, RuntimeError):
+                return None
+            except ParseFatalException:
+                return None
+        self._latex_cache[key] = res
+        return res
+
+    def get(self, mtype: MathType, path: str):
+        if EXTRAS_FORMULAE:
+            if mtype == MathType.ASCII:
+                res = str(printing.pretty(self.expr))
+            elif mtype == MathType.LATEX:
+                res = f"$${printing.latex(self.expr)}$$"
+            elif mtype == MathType.MATHML:
+                res = str(printing.mathml(self.expr))
+            elif mtype == MathType.FILE:
+                if path:
+                    res = f'<img src="{self.render_latex(printing.latex(self.expr), path)}"/>'
+                else:
+                    res = str('<img src="data:image/png;base64, ' +
+                          self.render_latex(printing.latex(self.expr), path) + '"/>')
+        else:
+            res = self.expr
+        return res
 
 
-
-class Var:
-    """A variable used in case there is no sympy installed.
-    """
-
-    def __init__(self, text: str):
-        self.data = text if not EXTRAS_FORMULAE else []
+def generic_xml_writer(item: XItem, path: str, otype: Platform, ttype: TextFormat):
+    value = f"<{item.tag} "
+    if item.attrs:
+        for key, val in item.attrs.items():
+            value += f"{key}={val} "
+    if item._children:
+        value = value.rstrip() + ">"
+        for child in item._children:
+            value += FText.to_string(child, path, otype, ttype)
+        value += f"</{item.tag}>"
+    else:
+        value = value.rstrip() + "/>"
+    return value
 
 
 class XItem:
-    """An (X)HTML item for the (X)HTML parser
+    """An item that based on HTML/XML but try to be as generic as possible,
+    so it can be used in any parser that has a similiar hierarchical struct.
     """
+    WRITER = {
+        TextFormat.XHTML: {Platform.NONE: generic_xml_writer},
+        TextFormat.HTML: {Platform.NONE: generic_xml_writer},
+        TextFormat.MD: {Platform.NONE: generic_xml_writer}
+    }
 
-    def __init__(self, tag, attrib: dict = None, closed: bool = False):
+    def __init__(self, tag, attrib: dict = None, opts: dict = None, closed: bool = False):
         self.tag = tag
         self.attrs = attrib or None
+        self.opts = opts or None
         self._children = None if closed else []
 
     def __eq__(self, val: object) -> bool:
@@ -151,18 +198,7 @@ class XItem:
         Returns:
             str: _description_
         """
-        value = f"<{self.tag} "
-        if self.attrs:
-            for key, val in self.attrs.items():
-                value += f"{key}={val} "
-        if self._children:
-            value = value.rstrip() + ">"
-            for child in self._children:
-                value += FText.to_string(child, path, otype, ttype)
-            value += f"</{self.tag}>"
-        else:
-            value = value.rstrip() + "/>"
-        return value
+        return self.WRITER[ttype][otype](self, path, otype, ttype)
 
 
 class LinkRef:
@@ -198,7 +234,7 @@ class LinkRef:
         elif "@@PLUGINFILE@@" in value:
             return parse.unquote(value).replace("@@PLUGINFILE@@", "/")
 
-    def get(self, embedded: bool, otype: Platform) -> str:
+    def get(self, embedded: bool, otype: Platform, _: TextFormat) -> str:
         """_summary_
         Args:
             embedded (bool): _description_
@@ -233,14 +269,30 @@ class LinkRef:
             output_bb += '/>'
 
 
-class PlainParser():
+class Parser():
+    """Abstract class to represent parsers. All parsers must have (at least) 
+    these attributes and methods.
+    """
+
+    def __init__(self, rpath: str=None):
+        self.ftext: list = []
+        self.files: List[File] = None
+        self._rpath: str = rpath
+
+    def parse(self, data: Any) -> None:
+        """Parse the data provided.
+        Args:
+            data ( Any ): data to be parsed
+        Raises:
+            ParseError: If the data is not a string or TextIO
+        """
+        return None
+
+
+class PlainParser(Parser):
     """A interface for plain text files that dont need any parsing. Same as
     justing putting the text in a list.
     """
-
-    def __init__(self, rpath: str):
-        self.ftext = []
-        self._rpath = rpath
 
     def parse(self, data: str|TextIOWrapper):
         """Parse the data provided.
@@ -343,24 +395,40 @@ class XHTMLParser(parser.HTMLParser):
         self.ftext = list(self._stack[0])
 
 
-class Parser():
-    """Abstract class to represent parsers. All parsers must have (at least) 
-    these attributes and methods.
-    """
+class XHTMLWriter:
 
-    def __init__(self):
-        self.ftext: list = []
-        self.files: List[File] = None
-        self._rpath: str = None
+    def __init__(self, buffer: StringIO, ftext: FText) -> None:
+        self.buffer = buffer
+        self.ftext = ftext
 
-    def parse(self, data: str|TextIOWrapper) -> None:
-        """Parse the data provided.
-        Args:
-            data (str | TextIOWrapper): data to be parsed
-        Raises:
-            ParseError: If the data is not a string or TextIO
+    def _writer_item(self, item: XItem):
+        self.buffer.write(f"<{item.tag} ")
+        if item.attrs:
+            for key, val in item.attrs.items():
+                self.buffer.write(f"{key}={val} ")
+        self.buffer.seek(self.buffer.tell()-1)
+        if item._children:
+            self.buffer.write(">")
+            for child in item:
+                if isinstance(child, str):
+                    self.buffer.write(child)
+                elif isinstance(child, XItem):
+                    self._writer_item(child)
+            self.buffer.write(f"</{item.tag}>")
+        else:
+            self.buffer.write("/>")
+
+    def _write_ftext(self, ftext: FText):
+        for item in ftext:
+            if isinstance(item, str):
+                self.buffer.write(item)
+            elif isinstance(item, XItem):
+                self._writer_item(item)
+
+    def write(self):
+        """Writes an FText to a string. Keep this format to follow the pattern.
         """
-        return None
+        self._write_ftext(self.ftext)
 
 
 class FText:
@@ -400,67 +468,63 @@ class FText:
         """
         return self._text
 
-    @staticmethod
-    def to_string(item, path: str, otype: Platform, ttype: TextFormat) -> str:
-        """_summary_
-        Args:
-            item (_type_): _description_
-            math_type (MathType, optional): _description_. Defaults to None.
-        Returns:
-            str: _description_
-        """
-        res = ""
-        if isinstance(item, str):
-            res = item
-        elif isinstance(item, XItem):
-            res = item.get(path, otype, ttype)
-        elif hasattr(item, "MARKER_INT"):
-            res = chr(item.MARKER_INT)
-        elif isinstance(item, LinkRef):
-            res = item.get(path, otype)
-        elif EXTRAS_FORMULAE and isinstance(item, Expr):
-            if ttype == TextFormat.PLAIN:
-                res = str(printing.pretty(item))
-            elif ttype in (TextFormat.LATEX, TextFormat.MD):
-                res = f"$${printing.latex(item)}$$"
-            elif ttype == TextFormat.HTML:
-                res = str(printing.mathml(item))
-            elif ttype == TextFormat.XHTML:
-                if path:
-                    res = f'<img src="{render_latex(printing.latex(item), path)}"/>'
-                else:
-                    res = str('<img src="data:image/png;base64, ' +
-                          render_latex(printing.latex(item), path) + '"/>')
-            elif otype == Platform.MOODLE and path:
-                res = str("{" + ("" if item.is_Atom else "=") + printing.latex(item) + "}")
-            elif otype == Platform.OLX:
-                res =  f"[mathjax]{printing.latex(item)}[/mathjax]"
-        else:
-            raise TypeError(f"Item has unknown type {type(item)}")
-        return res
+    # @staticmethod
+    # def to_string(item, path: str, otype: Platform, ttype: TextFormat) -> str:
+    #     """_summary_
+    #     Args:
+    #         item (_type_): _description_
+    #         math_type (MathType, optional): _description_. Defaults to None.
+    #     Returns:
+    #         str: _description_
+    #     """
+    #     res = ""
+    #     if isinstance(item, str):
+    #         res = item
+    #     elif hasattr(item, "get"):
+    #         res = item.get(path, otype, ttype)
+    #     elif EXTRAS_FORMULAE and isinstance(item, Expr):
+    #         if ttype == TextFormat.PLAIN:
+    #             res = str(printing.pretty(item))
+    #         elif ttype in (TextFormat.LATEX, TextFormat.MD):
+    #             res = f"$${printing.latex(item)}$$"
+    #         elif ttype == TextFormat.XHTML:
+    #             res = str(printing.mathml(item))
+    #         elif ttype == TextFormat.HTML:
+    #             if path:
+    #                 res = f'<img src="{render_latex(printing.latex(item), path)}"/>'
+    #             else:
+    #                 res = str('<img src="data:image/png;base64, ' +
+    #                       render_latex(printing.latex(item), path) + '"/>')
+    #         elif otype == Platform.MOODLE and path:
+    #             res = str("{" + ("" if item.is_Atom else "=") + printing.latex(item) + "}")
+    #         elif otype == Platform.OLX:
+    #             res =  f"[mathjax]{printing.latex(item)}[/mathjax]"
+    #     else:
+    #         raise TypeError(f"Item has unknown type {type(item)}")
+    #     return res
 
-    def get(self, mtype=MathType.ASCII, ftype=FileAddr.LOCAL, 
-            otype: Platform=Platform.NONE) -> str:
-        """Get a string representation of the object. This representation 
-        replaces Items with marker.
-        Args:
-            math_type (MathType, optional): Which type of 
-        Returns:
-            str: A string representation of the object
-        """
-        data = ""
-        for item in self._text:
-            tmp = self.to_string(item, mtype, ftype, otype)
-            if tmp:
-                data += tmp
-        return data
+    # def get(self, mtype=MathType.ASCII, ftype=FileAddr.LOCAL, 
+    #         otype: Platform=Platform.NONE) -> str:
+    #     """Get a string representation of the object. This representation 
+    #     replaces Items with marker.
+    #     Args:
+    #         math_type (MathType, optional): Which type of 
+    #     Returns:
+    #         str: A string representation of the object
+    #     """
+    #     data = ""
+    #     for item in self._text:
+    #         tmp = self.to_string(item, mtype, ftype, otype)
+    #         if tmp:
+    #             data += tmp
+    #     return data
 
     def add(self, parser: Parser|str):
         if isinstance(parser, str):
             self._text.append(parser)
         else:
             self._text.extend(parser.ftext)
-            if hasattr(parser, "files"):
+            if hasattr(parser, "files") and parser.files is not None:
                 for file in parser.files:
                     if file not in self._files:
                         self._files.append(file)

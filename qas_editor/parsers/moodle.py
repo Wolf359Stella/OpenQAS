@@ -20,29 +20,24 @@
 import logging
 import os
 import zipfile
-from importlib import util
 from typing import TYPE_CHECKING, List
 from xml.etree import ElementTree as et
 
 from ..answer import (ACalculated, Answer, ANumerical, DragGroup, DragImage,
                       DragItem, DropZone, SelectOption, Subquestion)
 from ..enums import (Distribution, Grading, MathType, Numbering, RespFormat,
-                     ShapeType, ShowAnswer, ShowUnits, ShuffleType, Status,
-                     Synchronise, TextFormat, TolFormat, TolType)
+                     ShapeType, ShowAnswer, ShowUnits, ShuffleType,
+                     Synchronise, TestStatus, TextFormat, TolFormat, TolType)
 from ..question import (QCalculated, QCalculatedMC, QDaDImage, QDaDMarker,
                         QDaDText, QEmbedded, QEssay, QMatching, QMissingWord,
                         QMultichoice, QNumerical, QProblem, QRandomMatching,
                         QShortAnswer, QTrueFalse)
 from ..utils import Dataset, File, Hint, TList, Unit, gen_hier, serialize_fxml
-from .text import FText, XHTMLParser
+from .text import FText, Math, XHTMLParser
 
 if TYPE_CHECKING:
     from ..category import Category, _Question
     from ..question import _QHasOptions, _QHasUnits
-EXTRAS_FORMULAE = util.find_spec("sympy") is not None
-if EXTRAS_FORMULAE:
-    from sympy.parsing.latex import parse_latex
-    from sympy.parsing.sympy_parser import parse_expr
 _LOG = logging.getLogger(__name__)
 
 
@@ -73,15 +68,14 @@ class MoodleXHTMLParser(XHTMLParser):
                                    "audio", "embed",  "video", "file", "track",
                                    "script", "source", "iframe"):
             data = self._update_fileref(data)
-        elif EXTRAS_FORMULAE:
-            while self.pos < len(data):
-                if data[self.pos:self.pos+2] == "{=" and not self.scp:
-                    self._wrapper(data, self._get_moodle_exp, 2)
-                elif data[self.pos] == "(" and self.scp: 
-                    self._wrapper(data, self._get_latex_exp)  # This is correct: "\("
-                elif data[self.pos] == "{" and not self.scp:
-                    self._wrapper(data, self._get_moodle_var)
-                self.pos += 1
+        while self.pos < len(data):
+            if data[self.pos:self.pos+2] == "{=" and not self.scp:
+                self._wrapper(data, self._get_moodle_exp, 2)
+            elif data[self.pos] == "(" and self.scp: 
+                self._wrapper(data, self._get_latex_exp)  # This is correct: "\("
+            elif data[self.pos] == "{" and not self.scp:
+                self._wrapper(data, self._get_moodle_var)
+            self.pos += 1
         if data[self.lst: self.pos]:
             self._stack[-1].append(data[self.lst: self.pos])
 
@@ -95,17 +89,17 @@ class MoodleXHTMLParser(XHTMLParser):
             self._nxt(data)
         expr = data[self.lst: self.pos]
         expr = expr.replace("{","").replace("}","").replace("pi()","pi")
-        return parse_expr(expr)
+        return Math.from_expr(expr)
 
     def _get_moodle_var(self, data: str):
         while data[self.pos] != "}":
             self._nxt(data)
-        return parse_expr(data[self.lst: self.pos])
+        return Math.from_expr(data[self.lst: self.pos])
 
     def _get_latex_exp(self, data: str):
         while data[self.pos] == ")" and self.scp:  # This is correct: "\("
             self._nxt(data)
-        return parse_latex(data[self.lst: self.pos])
+        return Math.from_latex(data[self.lst: self.pos])
 
 # -----------------------------------------------------------------------------
 
@@ -159,7 +153,7 @@ def _from_DatasetItems(root: et.Element, *_):
 def _from_Datasets(root: et.Element, tags: dict):
     data = []
     for obj in root:
-        tags["status"] = (Status, "status")
+        tags["status"] = (TestStatus, "status")
         tags["name"] = (str, "name")
         tags["type"] = (str, "ctype")
         tags["distribution"] = (Distribution, "distribution")

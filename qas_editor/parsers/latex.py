@@ -166,16 +166,6 @@ class LaTexParser:
         if self.line[self.start: self.idx].strip() and self.line[self.start] != "%":
             yield self._parse_string()
 
-    @staticmethod
-    def _to_string(item: XItem, *_) -> str:
-        tmp = "\\" + item.tag
-        if item.opts:
-            opt = [f"{k}={v}" if isinstance(k) else f"{v}" for k,v in item.opts.items()]
-            tmp += "[" + ",".join(opt) + "]"
-        if item.attrs:
-            tmp += "{" + "}{".join(item.attrs) + "}"
-        return tmp
-
     def read(self):
         try:
             self._next() # Load the initial bytes
@@ -196,7 +186,6 @@ class LaTexParser:
             return True
         except StopIteration:
             return False
-_WRITER[Platform.NONE] = LaTexParser._to_string 
 
 
 class LatexWriter:
@@ -206,35 +195,52 @@ class LatexWriter:
         self.lang = lang
         self.cat = cat
 
+    @staticmethod
+    def _to_string(item: XItem, *_) -> str:
+        tmp = "\\" + item.tag
+        if item.opts:
+            opt = [f"{k}={v}" if isinstance(k,str) else f"{v}" for k,v in item.opts.items()]
+            tmp += "[" + ",".join(opt) + "]"
+        if item.attrs:
+            opt = [f"{k}={v}" if isinstance(k,str) else f"{v}" for k,v in item.attrs.items()]
+            tmp += "{" + "}{".join(opt) + "}"
+        return tmp
+
     def _write_cat(self, cat: Category):
         self.buffer.write("\\begin{category}[" + cat.name + "]\n")
         for qst in cat.questions:
             self._write_ftext(qst.body[self.lang])      
         for name in cat:
             self._write_cat(cat[name])
-        self.buffer.write("\\end{category}]\n")
+        self.buffer.write("\\end{category}\n")
 
     def _write_header(self, cat: Category):
         if "latex" in cat.metadata:
-            for meta in cat.metadata["latex"]:
-                self.buffer.write(str(meta)+ "\n")
+            for item in cat.metadata["latex"]:
+                if isinstance(item, XItem):
+                    self.buffer.write(self._to_string(item) + "\n")
         self.buffer.write("\n")
 
     def _write_ftext(self, ftext: FText):
-        for item in ftext:
+        for item in ftext: 
             if isinstance(item, str):
                 self.buffer.write(item)
             elif isinstance(item, XItem):
-                pass
+                self._to_string(item)
             elif isinstance(item, Math):
                 self.buffer.write(item.get(MathType.LATEX, None))
+            else:
+                self._write_others(item)
+        self.buffer.write("\n")
+
+    def _write_others(self, item: Any):
+        pass
 
     def write(self):
         self._write_header(self.cat)
         self.buffer.write("\\begin{document}\n")
         self._write_cat(self.cat)
         self.buffer.write("\\end{document}\n")
-
 
 
 class _ClsExamParser(LaTexParser):
@@ -354,6 +360,7 @@ class _LatexToMoodleParser(LaTexParser):
         args["grade"] = opts["grade"][-1]
         args["penalty"] = opts["penalty"][-1]
         item = TextItem(None, Proc.from_template("no_result", args))
+        item.format = TextFormat.LATEX
         question.body[self.lang].text.append(item)
 
     def _question_multichoice(self, question: QQuestion, opts: Dict[str,XItem]):
@@ -431,7 +438,17 @@ _WRITER[Platform.LATEX_L2M] = _LatexToMoodleParser._to_string
 
 
 class _LatexToMoodleWriter(LatexWriter):
-    pass
+    
+    def _write_essay(self, item: TextItem):
+        self.buffer.write("\\begin{question}[essay]\n")
+        if "grade" in item.processor.args:
+            self.buffer.write(f"\\grade{item.processor.args['grade']}\n")
+        if "penalty" in item.processor.args:
+            self.buffer.write(f"\\penalty{item.processor.args['penalty']}\n")
+
+    def _write_others(self, item: Any):
+        if isinstance(item, TextItem):
+            self._write_essay(item)
 
 
 # -----------------------------------------------------------------------------
@@ -460,8 +477,6 @@ def write_l2m(self: Category, file_name: str, lang: Language) -> None:
         file_path (str): _description_
     """
     with open(file_name, 'w', encoding='utf-8') as ofile:
-        _write_header(self, ofile)
-        ofile.write("\\begin{document}\n")
-        _write_cat(self, ofile, lang, Platform.LATEX_L2M)
-        ofile.write("\\end{document}\n")
+        writer = _LatexToMoodleWriter(ofile, self, lang)
+        writer.write()
      
