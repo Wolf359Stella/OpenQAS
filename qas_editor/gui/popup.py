@@ -16,14 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from PyQt5 import QtWidgets, Qt, QtGui, QtCore
-from .utils import action_handler, HOTKEYS, key_name
-from ..enums import Distribution, Status
-from ..utils import TList
-from ..question import QNAME
+
+from PyQt5 import Qt, QtCore, QtGui, QtWidgets
+
+from .. import __author__, __doc__, __version__
 from ..category import Category
-from .. import __author__, __version__, __doc__
+from ..enums import Distribution, TestStatus
+from ..question import QNAME
+from ..utils import TList
+from .utils import HOTKEYS, action_handler, key_name
+
 if TYPE_CHECKING:
     from .window import Editor
 
@@ -53,7 +57,7 @@ class PDataset(QtWidgets.QWidget):
         _new = QtWidgets.QPushButton("New", self)
         _new.setToolTip("If the dataset if private or public")
         _content.addWidget(_new, 4, 1)
-        self._status = QtWidgets.GDropbox("status", self, Status)
+        self._status = QtWidgets.GDropbox("status", self, TestStatus)
         self._status.setToolTip("")
         self._status.setFixedWidth(120)
         _content.addWidget(self._status, 0, 2)

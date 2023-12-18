@@ -168,6 +168,58 @@ class GZones(AutoUpdateVBox):
                                     "orrect correct markers placed", parent)
 
 
+class _GArrow(QFrame):
+
+    def __init__(self, parent, collapsed):
+        QFrame.__init__(self, parent)
+        self.setMaximumSize(24, 24)
+        self.__hori = (QPointF(7, 8), QPointF(17, 8), QPointF(12, 13))
+        self.__vert = (QPointF(8, 7), QPointF(13, 12), QPointF(8, 17))
+        self._arrow = None
+        self.set_arrow(int(collapsed))
+
+    def set_arrow(self, arrow_dir: bool):
+        """_summary_
+        Args:
+            arrow_dir (bool): _description_
+        """
+        self._arrow = self.__vert if arrow_dir else self.__hori
+        self.update()
+
+    def paintEvent(self, _):    # pylint: disable=C0103
+        """Overwritten method. Paint the arrow icon.
+        """
+        painter = QPainter()
+        painter.begin(self)
+        painter.setBrush(QColor(192, 192, 192))
+        painter.setPen(QColor(64, 64, 64))
+        painter.drawPolygon(*self._arrow)
+        painter.end()
+
+
+class _GTitle(QFrame):
+
+    def __init__(self, parent, toogle_func, title=""):
+        QFrame.__init__(self, parent)
+        self.arrow = _GArrow(parent, True)
+        _title = QLabel(title)
+        _title.move(QPoint(24, 0))
+        _hlayout = QHBoxLayout(self)
+        _hlayout.setContentsMargins(0, 0, 0, 0)
+        _hlayout.setSpacing(0)
+        _hlayout.addWidget(self.arrow)
+        _hlayout.addWidget(_title)
+        self.setFixedHeight(24)
+        self.__toogle_func = toogle_func
+
+    def mousePressEvent(self, event):  # pylint: disable=C0103
+        """Overwritten method. Toogle the arrow icon and toggle items
+        visibility when clicked.
+        """
+        self.__toogle_func()
+        return super().mousePressEvent(event)
+
+
 class GCollapsible(QVBoxLayout):
     """Custom QLayout that gives a collapsable (dropdown style) window that
     contains other QWidgets.
@@ -175,61 +227,10 @@ class GCollapsible(QVBoxLayout):
     addWidget = property(doc='(!) Disallowed inherited')
     addLayout = property(doc='(!) Disallowed inherited')
 
-    class _GArrow(QFrame):
-
-        def __init__(self, parent, collapsed):
-            QFrame.__init__(self, parent)
-            self.setMaximumSize(24, 24)
-            self.__hori = (QPointF(7, 8), QPointF(17, 8), QPointF(12, 13))
-            self.__vert = (QPointF(8, 7), QPointF(13, 12), QPointF(8, 17))
-            self._arrow = None
-            self.set_arrow(int(collapsed))
-
-        def set_arrow(self, arrow_dir: bool):
-            """_summary_
-
-            Args:
-                arrow_dir (bool): _description_
-            """
-            self._arrow = self.__vert if arrow_dir else self.__hori
-            self.update()
-
-        def paintEvent(self, _):    # pylint: disable=C0103
-            """Overwritten method. Paint the arrow icon.
-            """
-            painter = QPainter()
-            painter.begin(self)
-            painter.setBrush(QColor(192, 192, 192))
-            painter.setPen(QColor(64, 64, 64))
-            painter.drawPolygon(*self._arrow)
-            painter.end()
-
-    class _GTitle(QFrame):
-
-        def __init__(self, parent, toogle_func, title=""):
-            QFrame.__init__(self, parent)
-            self.arrow = GCollapsible._GArrow(parent, True)
-            _title = QLabel(title)
-            _title.move(QPoint(24, 0))
-            _hlayout = QHBoxLayout(self)
-            _hlayout.setContentsMargins(0, 0, 0, 0)
-            _hlayout.setSpacing(0)
-            _hlayout.addWidget(self.arrow)
-            _hlayout.addWidget(_title)
-            self.setFixedHeight(24)
-            self.__toogle_func = toogle_func
-
-        def mousePressEvent(self, event):  # pylint: disable=C0103
-            """Overwritten method. Toogle the arrow icon and toggle items
-            visibility when clicked.
-            """
-            self.__toogle_func()
-            return super().mousePressEvent(event)
-
     def __init__(self, parent, title):
         QVBoxLayout.__init__(self)
         self._is_collasped = True
-        self._title_frame = GCollapsible._GTitle(parent, self.toggle, title)
+        self._title_frame = _GTitle(parent, self.toggle, title)
         super().addWidget(self._title_frame)
         self._content = QFrame(parent)
         self._content.setStyleSheet(".QFrame{border:1px solid rgb(41, 41, 41)"
@@ -248,7 +249,6 @@ class GCollapsible(QVBoxLayout):
 
     def setLayout(self, layout) -> None:  # pylint: disable=C0103
         """_summary_
-
         Args:
             layout (_type_): _description_
         """

@@ -78,12 +78,12 @@ class Editor(QMainWindow):
 
         self.cframe_vbox = QVBoxLayout()
         self._block_general_data()
-        self._block_answer()
-        self._block_hints()
-        self._block_units()
-        self._block_zones()
-        self._block_solution()
-        self._block_template()
+        #self._block_answer()
+        #self._block_hints()
+        #self._block_units()
+        #self._block_zones()
+        #self._block_solution()
+        #self._block_template()
         self.cframe_vbox.addStretch()
         self.cframe_vbox.setSpacing(5)
         for value in self._items:
@@ -245,11 +245,11 @@ class Editor(QMainWindow):
         self.cframe_vbox.addLayout(clayout, 1)
         grid = QVBoxLayout()    # No need of parent. It's inside GCollapsible
         grid.setSpacing(2)
-        self.main_editor = GTextEditor(self.toolbar, "question")
-        self._items.append(self.main_editor)
-        self._items[-1].setToolTip("Question's description text")
-        self._items[-1].setMinimumHeight(200)
-        grid.addWidget(self._items[-1], 1)
+        # self.main_editor = GTextEditor(self.toolbar, "question")
+        # self._items.append(self.main_editor)
+        # self._items[-1].setToolTip("Question's description text")
+        # self._items[-1].setMinimumHeight(200)
+        # grid.addWidget(self._items[-1], 1)
         self.tagbar = GTagBar(self)
         self.tagbar.setToolTip("List of tags used by the question.")
         self._items.append(self.tagbar)
@@ -265,6 +265,7 @@ class Editor(QMainWindow):
         others.addStretch()
         clayout.setLayout(grid)
         clayout.toggle()
+        clayout._content.setMaximumHeight(230)
 
     def _block_general_data_general(self):
         group_box = QGroupBox("General", self)

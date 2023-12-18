@@ -28,7 +28,8 @@ from .answer import (ACalculated, Answer, ANumerical, DragGroup, DragImage,
                      DragItem, DropZone, EmbeddedItem, SelectOption,
                      Subquestion)
 from .enums import (Distribution, Grading, Language, Numbering, RespFormat,
-                    ShowAnswer, ShowUnits, ShuffleType, Status, Synchronise)
+                    ShowAnswer, ShowUnits, ShuffleType, Synchronise,
+                    TestStatus)
 from .parsers.text import FText
 from .utils import Dataset, File, Hint, TList, Unit
 
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from .category import Category
+    from .processors import Proc
 _LOG = logging.getLogger(__name__)
 
 
@@ -232,7 +234,7 @@ class QCalculatedMC(_QHasOptions):
         self.numbering = Numbering.ALF_LR if numbering is None else numbering
         self.datasets = [] if datasets is None else datasets
 
-    def add_dataset(self, status: Status, name: str, dist: Distribution,
+    def add_dataset(self, status: TestStatus, name: str, dist: Distribution,
                     minim: float, maxim: float, dec: int) -> None:
         """_summary_
 
@@ -570,7 +572,7 @@ class QQuestion:
         return self.__parent
 
     @property
-    def procs(self) -> Category:
+    def procs(self) -> List[Proc]:
         """Processes that will run after each item is concluded.
         """
         return self._procs
