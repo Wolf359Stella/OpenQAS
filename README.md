@@ -86,4 +86,3 @@ Here are some points to consider before submitting a PR:
 
   Thank you,\
   Wolfgang\
-  :blush:
