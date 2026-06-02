@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -e pdoc .
-      - run: pdoc -o docs/ -d google --no-show-source qas_editor
+      - run: pdoc -o docs/ -d google --no-show-source OpenQAS
       - uses: actions/upload-pages-artifact@v2
         with:
           path: docs/

@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QApplication
 
-from qas_editor.gui import popup
+from OpenQAS.gui import popup
 
 if TYPE_CHECKING:
     from pytestqt.qtbot import QtBot

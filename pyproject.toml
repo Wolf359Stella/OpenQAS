@@ -1,83 +1,67 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
-name = "QAS Editor"
+[project]
+name = "OpenQAS"
 version = "0.0.7"
 description = "Question and Answer Sheet editor"
-authors = [
-    "Lucas Wolfgang <lucawolfcs@hotmail.com>"
-]
-license = "GPL-3.0"
 readme = "README.md"
-repository = "https://github.com/LucasWolfgang/QAS-Editor"
+license = { text = "GPL-3.0" }
+requires-python = ">=3.14"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GPL-3.0 license",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
-    'Development Status :: 3 - Alpha',
+    "Development Status :: 3 - Alpha",
     "Topic :: Education",
     "Topic :: Software Development :: Libraries"
 ]
-packages = [
-    { include = "qas_editor" },
-    { include = "qas_editor.gui" },
-    { include = "qas_editor._parsers" }
+
+dependencies = []
+
+[project.optional-dependencies]
+formulae = [
+    "sympy",
+    "matplotlib"
+]
+gui = [
+    "PyQt5>=5.15.0"
+]
+docx = [
+    "odfpy"
+]
+dev = [
+    "pytest",
+    "pytest-qt",
+    "pytest-cov",
+    "pylint",
+    "flake8"
 ]
 
-
-[tool.poetry.dependencies]
-python = "^3.7"
-sympy = { version = "*", optional = true }
-matplotlib = { version = "*", optional = true }
-#   cycler, fonttools, kiwisolver, numpy, packaging, pillow, pyparsing,
-#   mpmath, python-dateutil
-PyQt5 = { version = "^5.15.0", optional = true }  # PyQt5-Qt5, PyQt5-sip
-odfpy = { version = "*", optional = true }
-pytest = { version = "*", optional = true }
-pytest-qt = { version = "*", optional = true }
-
-
-[tool.poetry.extras]
-"formulae" = ["sympy", "matplotlib"]
-"gui" = ["PyQt5 >= 5.15.0"]
-"docx" = ["odfpy"]
-"dev" = ["pytest", "pytest-qt", "pylint", "pytest", "flake8"]
-
-
-[tool.poetry.group.dev.dependencies]
-pytest-cov = "*"
-
-[tool.pytest.ini_options]
-testpaths = [
-    "."
-]
-addopts = [
-    "--import-mode=importlib",
-]
+[project.urls]
+Repository = "https://github.com/Wolf359Stella/OpenQAS"
 
 
 [tool.pylint.messages_control]
-disable = ["C0302",     # Too many lines in module
-           "R0903",     # Too few public methods. Not necessary
-           "W1202",     # Use % formatting in logging functions. Can't see why
-           "W1203",     # Use lazy % or .format() formatting in logging functions...
-           "W0511",     # TODO's. Not necessary
-           "W0223",     # Method is abstract is not overridden. Used as documentation
-           "R0912",
-           "E0401",
-           "W0122"
-          #"W0212"      # Access to a protected member. Internal methods need to access protected member.
-        ]               #   but it will be good to revise this one later.
-
+disable = [
+    "C0302",  # Too many lines in module
+    "R0903",  # Too few public methods
+    "W1202",  # Use % formatting in logging functions
+    "W1203",  # Use lazy % or .format() formatting
+    "W0511",  # TODOs
+    "W0223",  # Abstract method not overridden
+    "R0912",
+    "E0401",
+    "W0122"
+]
 
 [tool.pylint.design]
-max-attributes=20
-max-args=20
-max-bool-expr=15
+max-attributes = 20
+max-args = 20
+max-bool-expr = 15
 max-statements = 100
-
 
 [tool.flake8]
 max_line_length = 100

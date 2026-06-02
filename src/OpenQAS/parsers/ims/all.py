@@ -18,12 +18,5 @@
 
 """
 
-import os
-
-TEST_PATH = os.path.dirname(os.path.dirname(__file__))
-
-
-def test_read():
-    EXAMPLE = f"{TEST_PATH}/datasets/odf/text.odf"
-    # a = Category.read_pdf(EXAMPLE)
-    #print(a)
+def read_any():
+    pass

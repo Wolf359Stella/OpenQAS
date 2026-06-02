@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 ## Description
 
 """
-from qas_editor.utils import *
+from OpenQAS.utils import *
 
 
 def test_dataset():

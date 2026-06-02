@@ -2,7 +2,7 @@
 <quiz>
   <question type="category">
     <category>
-      <text>$course$/qas_editor</text>
+      <text>$course$/OpenQAS</text>
     </category>
   </question>
   <question type="essay">
@@ -168,7 +168,7 @@
   </question>
   <question type="category">
     <category>
-      <text>$course$/qas_editor/second_cat</text>
+      <text>$course$/OpenQAS/second_cat</text>
     </category>
   </question>
   <question type="essay">
@@ -425,7 +425,7 @@
   </question>
   <question type="category">
     <category>
-      <text>$course$/qas_editor/num</text>
+      <text>$course$/OpenQAS/num</text>
     </category>
   </question>
   <question type="numerical">
@@ -558,7 +558,7 @@
   </question>
   <question type="category">
     <category>
-      <text>$course$/qas_editor/calculated</text>
+      <text>$course$/OpenQAS/calculated</text>
     </category>
   </question>
   <question type="calculated">
@@ -2518,7 +2518,7 @@
   </question>
   <question type="category">
     <category>
-      <text>$course$/qas_editor/alternative-format</text>
+      <text>$course$/OpenQAS/alternative-format</text>
     </category>
   </question>
   <question type="multichoice">

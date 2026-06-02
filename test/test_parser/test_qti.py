@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -22,8 +22,8 @@ import shutil
 
 import pytest
 
-from qas_editor.category import Category
-from qas_editor.parsers.ims import IMS, bb, canvas
+from OpenQAS.category import Category
+from OpenQAS.parsers.ims import IMS, bb, canvas
 
 TEST_PATH = os.path.dirname(os.path.dirname(__file__))
 

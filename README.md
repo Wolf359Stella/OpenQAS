@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="https://badge.fury.io/gh/LucasWolfgang%2FQAS-editor.svg">
-  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LucasWolfgang/344598a4a0f7b92a7889d998e33417c4/raw/pylint_3.7.json">
-  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LucasWolfgang/344598a4a0f7b92a7889d998e33417c4/raw/pytest_3.7.json">
-  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/LucasWolfgang/344598a4a0f7b92a7889d998e33417c4/raw/flake8_3.7.json">
+  <img src="https://badge.fury.io/gh/Wolf359Stella%2FOpenQAS.svg">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Wolf359Stella/344598a4a0f7b92a7889d998e33417c4/raw/pylint_3.7.json">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Wolf359Stella/344598a4a0f7b92a7889d998e33417c4/raw/pytest_3.7.json">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Wolf359Stella/344598a4a0f7b92a7889d998e33417c4/raw/flake8_3.7.json">
 </div>
 
 <div align="center">
@@ -10,7 +10,7 @@
 </div><br/>
 
 ## Description
-Question and Answer Sheet Editor is a desktop-focused python API and a UI utility to automate/help with tasks related to the creation, deletion, update, organization and convertion of question databases.
+Open Question and Assessments System  is a desktop-focused python API and a UI utility to automate/help with tasks related to the creation, deletion, update, organization and convertion of question databases.
  
 The structure of the module is based on the Moodle XML. The initial source code was forked from [moodle-questions](https://github.com/gethvi/moodle-questions) and has some inspiration from [moodlexport](https://github.com/Guillaume-Garrigos/moodlexport) and [markdown2moodle](https://github.com/brunomnsilva/markdown2moodle). Some code was reused from [moodle2edx-0.1.0](https://github.com/mitocw/moodle2edx),[text2qti](https://github.com/gpoore/text2qti) and [amc2moodle](https://github.com/nennigb/amc2moodle) too.
 
@@ -61,7 +61,7 @@ Besides repos listed above, some testcases were also taken from [moodle test web
 </center ><br/>
 
 ## Database
-- The [QAS Database](https://github.com/LucasWolfgang/QASDatabase) is the repository used to archive questions that can be opened using this QAS Editor or other applications. The extensions currently used is the Moodle XML, but I am studying changing it to a better one.
+- The [QAS Database](https://github.com/Wolf359Stella/QASDatabase) is the repository used to archive questions that can be opened using this QAS Editor or other applications. The extensions currently used is the Moodle XML, but I am studying changing it to a better one.
 
 
 ## Contributing

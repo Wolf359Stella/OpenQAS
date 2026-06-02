@@ -146,7 +146,7 @@
 \newbool{mc@showPerVersion}
 \newbool{mc@showQuestionPermutationtable}
 \newbool{mc@showQuestionsAnalysis}
-\newbool{mc@showQuestionList}
+\newbool{mc@showQuestionlist}
 \newbool{mc@showCorrectAnswers}
 \newbool{mc@showAnswerPoints}
 \newbool{mc@showExplanation}
@@ -170,10 +170,10 @@
    \ifstrequal{#1}{false}{\boolfalse{mc@showQuestionsAnalysis}}{
    \PackageError{mcexam}{Invalid argument for showQuestionsAnalysis.}{Make sure showQuestionsAnalysis is either 'true' or 'false'.}
    }}}   
-\define@key{mc@show}{showQuestionList}[true]{
-   \ifstrequal{#1}{true}{\booltrue{mc@showQuestionList}}{
-   \ifstrequal{#1}{false}{\boolfalse{mc@showQuestionList}}{
-   \PackageError{mcexam}{Invalid argument for showQuestionList.}{Make sure showQuestionList is either 'true' or 'false'.}
+\define@key{mc@show}{showQuestionlist}[true]{
+   \ifstrequal{#1}{true}{\booltrue{mc@showQuestionlist}}{
+   \ifstrequal{#1}{false}{\boolfalse{mc@showQuestionlist}}{
+   \PackageError{mcexam}{Invalid argument for showQuestionlist.}{Make sure showQuestionlist is either 'true' or 'false'.}
    }}}      
 \define@key{mc@show}{showCorrectAnswers}[true]{
    \ifstrequal{#1}{true}{\booltrue{mc@showCorrectAnswers}}{
@@ -226,7 +226,7 @@
 \mcsetupConcept{showPerVersion=false
                ,showQuestionPermutationtable=true
                ,showQuestionsAnalysis=false
-               ,showQuestionList=true
+               ,showQuestionlist=true
                ,showCorrectAnswers=true
                ,showAnswerPoints=true
                ,showExplanation=true
@@ -238,7 +238,7 @@
 \mcsetupExam{showPerVersion=true
             ,showQuestionPermutationtable=false
             ,showQuestionsAnalysis=false
-            ,showQuestionList=true
+            ,showQuestionlist=true
             ,showCorrectAnswers=false
             ,showAnswerPoints=false
             ,showExplanation=false
@@ -250,7 +250,7 @@
 \mcsetupKey{showPerVersion=false
            ,showQuestionPermutationtable=false
            ,showQuestionsAnalysis=false
-           ,showQuestionList=false
+           ,showQuestionlist=false
            ,showCorrectAnswers=false
            ,showAnswerPoints=false
            ,showExplanation=false
@@ -262,7 +262,7 @@
 \mcsetupAnswers{showPerVersion=true
                ,showQuestionPermutationtable=false
                ,showQuestionsAnalysis=false
-               ,showQuestionList=true
+               ,showQuestionlist=true
                ,showCorrectAnswers=true
                ,showAnswerPoints=true
                ,showExplanation=true
@@ -274,7 +274,7 @@
 \mcsetupAnalysis{showPerVersion=false
                 ,showQuestionPermutationtable=true
                 ,showQuestionsAnalysis=true
-                ,showQuestionList=true
+                ,showQuestionlist=true
                 ,showCorrectAnswers=true
                 ,showAnswerPoints=true
                 ,showExplanation=true
@@ -651,7 +651,7 @@
   %% collect the questions in control sequences mc@question1 to mc@questionN with N the number of questions
   %% control sequences mc@question0 includes everything before the first mcquestion
   \setcounter{mc@counter}{-1}
-  \DeclareListParser{\mc@collectQuestions}{\question}
+  \DeclarelistParser{\mc@collectQuestions}{\question}
   \renewcommand\do[1]{
     \refstepcounter{mc@counter}
     \long\csgdef{mc@question\arabic{mc@counter}}{\mc@questionOption##1}
@@ -724,7 +724,7 @@
 \def\mc@collectmcquestionsBody@collectAnswers{{
   %%% collect the answers of mcanswers(list) environments for question 1 in control sequences mc@answerQ1A1 to mc@answerQ1AN 
   %%% with N the number of answers, answers for question 2 in control sequences mc@answerQ2A1 to mc@answerQ1AN, etc. 
-  \DeclareListParser{\mc@collectAnswers}{\answer}
+  \DeclarelistParser{\mc@collectAnswers}{\answer}
   \renewcommand\do[1]{
     \refstepcounter{mc@counter}
     \long\csgdef{mc@answerQ\q A\arabic{mc@counter}}{\mc@answerOption##1}
@@ -1471,7 +1471,7 @@
 \def\mc@typesetContent{ 
   \ifbool{mc@showQuestionPermutationtable}{\mc@questionPermutationtable}{}  %%% Subsection 5.1 
   \ifbool{mc@showQuestionsAnalysis}{\mc@generalAnalysisInfo}{}  %%% Subsection 5.2 
-  \ifbool{mc@showQuestionList}{\mc@questionList}{}  %%% Subsection 5.3 
+  \ifbool{mc@showQuestionlist}{\mc@questionlist}{}  %%% Subsection 5.3 
   \ifbool{mc@showKeytable}{\mc@keytable}{}   %%% Subsection 5.4          
   }
 
@@ -1553,21 +1553,21 @@
 %%%   4.3 Question list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
-\def\mc@questionList{
-  \mc@questionList@setmcanswerslist
-  \mc@questionList@setmcanswers
+\def\mc@questionlist{
+  \mc@questionlist@setmcanswerslist
+  \mc@questionlist@setmcanswers
   %%%
-  \gdef\mc@questionList@enumerate{}
+  \gdef\mc@questionlist@enumerate{}
   \foreach \q in {1,...,\mc@totalNumberOfQuestions}{
     % Set \theq the question number to be printed.
     \ifbool{mc@showPerVersion}{
-      \xappto\mc@questionList@enumerate{\noexpand\xdef\noexpand\theq{\csuse{mc@originalQuestionNumberV\mc@theVersion Q\q}}}
+      \xappto\mc@questionlist@enumerate{\noexpand\xdef\noexpand\theq{\csuse{mc@originalQuestionNumberV\mc@theVersion Q\q}}}
       }{
-      \xappto\mc@questionList@enumerate{\noexpand\xdef\noexpand\theq{\q}}
+      \xappto\mc@questionlist@enumerate{\noexpand\xdef\noexpand\theq{\q}}
       }
     % Print the question instruction.
     \ifnumequal{\q}{1}{
-      \gappto\mc@questionList@enumerate{
+      \gappto\mc@questionlist@enumerate{
         \ifcsempty{mc@questionInstruction\theq}{}{
           \begin{setmcquestioninstruction}
           \csuse{mc@questionInstruction\theq}
@@ -1575,7 +1575,7 @@
           }
         }
       }{
-      \gappto\mc@questionList@enumerate{
+      \gappto\mc@questionlist@enumerate{
         \ifcsempty{mc@questionInstruction\theq}{}{
           \end{setmcquestions}
           \begin{setmcquestioninstruction}
@@ -1586,23 +1586,23 @@
         }      
       }    
     % At the first question, open the list environment.    
-    \ifnumequal{\q}{1}{\gappto\mc@questionList@enumerate{\begin{setmcquestions}}}{}
+    \ifnumequal{\q}{1}{\gappto\mc@questionlist@enumerate{\begin{setmcquestions}}}{}
     % Add the question. 
-    \gappto\mc@questionList@enumerate{\item \begin{setmcquestion}\csuse{mc@question\theq}\end{setmcquestion}} 
+    \gappto\mc@questionlist@enumerate{\item \begin{setmcquestion}\csuse{mc@question\theq}\end{setmcquestion}} 
     % Add question info
-    \gappto\mc@questionList@enumerate{\mc@questionList@questionInfo}
+    \gappto\mc@questionlist@enumerate{\mc@questionlist@questionInfo}
     }
   % Close the list environment after the last question.  
-  \gappto\mc@questionList@enumerate{\end{setmcquestions}}
+  \gappto\mc@questionlist@enumerate{\end{setmcquestions}}
   %%%
-  {\@beginparpenalty=10000 \mc@questionList@enumerate}
+  {\@beginparpenalty=10000 \mc@questionlist@enumerate}
   }
   
 
 
  
   
-\def\mc@questionList@setmcanswerslist{
+\def\mc@questionlist@setmcanswerslist{
   \RenewEnviron{mcanswerslist}[1][]{
     \gdef\mc@answerslist@enumerate{}
     \gappto\mc@answerslist@enumerate{\begin{setmcanswerslist}}
@@ -1621,7 +1621,7 @@
   
   
   
-\def\mc@questionList@setmcanswers{
+\def\mc@questionlist@setmcanswers{
   \RenewEnviron{mcanswers}[1][]{
     \providecommand\answer[3][]{}
     \renewcommand\answer[3][]{%
@@ -1636,7 +1636,7 @@
   
 
  
-\def\mc@questionList@questionInfo{
+\def\mc@questionlist@questionInfo{
   \gdef\mc@questionInfoBODY{}
   % Add the correct answer.
   \ifboolexpr{bool{mc@correct} and bool{mc@showCorrectAnswers} and test{\ifnumgreater{\csuse{mc@totalNumberOfAnswersQ\theq}}{0}}}{  

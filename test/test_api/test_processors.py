@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 import inspect
 import os
 
-from qas_editor.processors import Proc, to_source
+from OpenQAS.processors import Proc, to_source
 
 TEST_PATH = os.path.dirname(__file__)
 SRC_PATH = os.path.abspath(os.path.join(TEST_PATH, '..'))
@@ -30,9 +30,9 @@ def test_func_to_string():
     args = {"values":{0:{"value": 0}, 1:{"value": 100}}}
     source = Proc.TEMPLATES["mapper"].format(args=args)
     proc = to_source(source)
-    assert proc == """def processor(dbid: Any) -> Dict[(str, Any)]:
+    assert proc == """def processor(dbid: Any) -> dict[(str, Any)]:
     args = {'values': {(0): {'value': 0}, (1): {'value': 100}}}
-    output: Dict[(str, Any)] = {}
+    output: dict[(str, Any)] = {}
     for key, value in args['values'].items():
         if dbid == key:
             output = value

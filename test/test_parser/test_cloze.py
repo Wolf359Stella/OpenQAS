@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 
 import os
 
-from qas_editor import answer, category, enums, utils
+from OpenQAS import answer, category, enums, utils
 
 TEST_PATH = os.path.dirname(os.path.dirname(__file__))
 

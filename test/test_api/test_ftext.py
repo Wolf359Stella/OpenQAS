@@ -1,4 +1,4 @@
-# Question and Answer Sheet Editor <https://github.com/LucasWolfgang/QAS-Editor>
+# Question and Answer Sheet Editor <https://github.com/Wolf359Stella/QAS-Editor>
 # Copyright (C) 2022  Lucas Wolfgang
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,11 @@ from io import StringIO
 
 from sympy import Symbol, sqrt
 
-from qas_editor import utils
-from qas_editor.enums import FileAddr, MathType, Platform
-from qas_editor.parsers.latex import LatexWriter
-from qas_editor.parsers.moodle import MoodleXHTMLParser
-from qas_editor.parsers.text import (FText, LinkRef, PlainParser, XHTMLParser,
+from OpenQAS import utils
+from OpenQAS.enums import FileAddr, MathType, Platform
+from OpenQAS.parsers.latex import LatexWriter
+from OpenQAS.parsers.moodle import MoodleXHTMLParser
+from OpenQAS.parsers.text import (FText, LinkRef, PlainParser, XHTMLParser,
                                      XHTMLWriter, XItem)
 
 TEST_PATH = os.path.dirname(__file__)
