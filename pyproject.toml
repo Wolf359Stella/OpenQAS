@@ -19,16 +19,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries"
 ]
 
-dependencies = []
-
-[project.optional-dependencies]
-formulae = [
+dependencies = [
     "sympy",
-    "matplotlib"
-]
-gui = [
+    "antlr4-python3-runtime==4.11",
     "PyQt5>=5.15.0"
 ]
+
+[project.optional-dependencies]
 docx = [
     "odfpy"
 ]
@@ -63,7 +60,8 @@ max-args = 20
 max-bool-expr = 15
 max-statements = 100
 
-[tool.flake8]
-max_line_length = 100
-exclude = [".venv", ".mypy_cache", ".pytest_cache"]
-ignore = ["PT013", "PT018", "503"]
+
+[tool.basedpyright]
+reportExplicitAny = false
+reportUnusedCallResult = "none"
+reportMissingTypeStubs = "none"
